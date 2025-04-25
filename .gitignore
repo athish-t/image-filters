@@ -20,3 +20,6 @@ build/main
 # Ignore system-specific files
 .DS_Store
 Thumbs.db
+
+# Ignore VS Code settings
+.vscode/

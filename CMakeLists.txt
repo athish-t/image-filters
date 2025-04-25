@@ -11,6 +11,7 @@ find_package(OpenCV REQUIRED)
 
 # Include OpenCV headers
 include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(include)
 
 # Add the source files
 add_executable(main src/main.cpp)

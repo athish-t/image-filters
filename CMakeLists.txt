@@ -6,6 +6,12 @@ project(MyNinjaProject)
 # Use Ninja as the generator
 set(CMAKE_GENERATOR "Ninja")
 
+# Set the C++ standard
+set(CMAKE_CXX_STANDARD 17)
+
+# Set the build type
+set(CMAKE_BUILD_TYPE Debug)
+
 # Find OpenCV
 find_package(OpenCV REQUIRED)
 

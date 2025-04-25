@@ -1,0 +1,22 @@
+# Ignore build artifacts
+build/
+
+# Ignore CMake files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Ignore temporary files
+*.o
+*.obj
+*.tmp
+*.log
+
+# Ignore generated binaries
+src/*.o
+build/main
+
+# Ignore system-specific files
+.DS_Store
+Thumbs.db

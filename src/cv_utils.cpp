@@ -15,24 +15,44 @@ void displayImages(const std::vector<cv::Mat>& images) {
         }
     }
 
-    // Resize all images to the size of the first image
-    cv::Size targetSize = images[0].size();
-    int targetType = images[0].type();
-    std::vector<cv::Mat> resizedImages;
+    // Determine grid size (rows and columns)
+    int gridCols = static_cast<int>(std::ceil(std::sqrt(images.size())));
+    int gridRows = static_cast<int>(std::ceil(static_cast<double>(images.size()) / gridCols));
 
+    // Determine the maximum width and height of images
+    int maxWidth = 0, maxHeight = 0;
     for (const auto& img : images) {
-        cv::Mat resized;
-        cv::resize(img, resized, targetSize);
-        if (resized.type() != targetType) {
-            resized.convertTo(resized, targetType);
-        }
-        resizedImages.push_back(resized);
+        maxWidth = std::max(maxWidth, img.cols);
+        maxHeight = std::max(maxHeight, img.rows);
     }
 
-    // Combine all images side by side
-    cv::Mat combinedImage;
-    cv::hconcat(resizedImages, combinedImage);
-    cv::imshow("Images", combinedImage);
+    // Create a blank canvas for the grid with 3 channels (RGB)
+    cv::Mat canvas = cv::Mat::zeros(gridRows * maxHeight, gridCols * maxWidth, CV_8UC3);
+
+    // Place each image in the grid
+    for (size_t i = 0; i < images.size(); ++i) {
+        int row = i / gridCols;
+        int col = i % gridCols;
+
+        // Convert the image to 3 channels (RGB) if necessary
+        cv::Mat img;
+        if (images[i].channels() == 1) {
+            cv::cvtColor(images[i], img, cv::COLOR_GRAY2BGR);
+        } else {
+            img = images[i];
+        }
+
+        // Resize the image to fit within the grid cell
+        cv::Mat resized;
+        cv::resize(img, resized, cv::Size(maxWidth, maxHeight));
+
+        // Copy the resized image to the canvas
+        cv::Rect roi(col * maxWidth, row * maxHeight, maxWidth, maxHeight);
+        resized.copyTo(canvas(roi));
+    }
+
+    // Display the canvas
+    cv::imshow("Images", canvas);
     cv::waitKey(0); // Wait for a key press
 }
 

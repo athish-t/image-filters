@@ -1,30 +1,38 @@
 #include "cv_utils.hpp"
 #include <iostream>
 
-void displayImages(const cv::Mat& inputImage, const cv::Mat& benchmarkImage, const cv::Mat& customImage) {
-    // Check if any of the input images are empty
-    if (inputImage.empty() || benchmarkImage.empty() || customImage.empty()) {
-        std::cerr << "Error: One or more input images are empty." << std::endl;
+void displayImages(const std::vector<cv::Mat>& images) {
+    if (images.empty()) {
+        std::cerr << "Error: No images provided for display." << std::endl;
         return;
     }
 
-    // Ensure all images have the same size and type
-    cv::Mat resizedInput, resizedBenchmark, resizedCustom;
-    cv::Size targetSize = inputImage.size();
-
-    cv::resize(inputImage, resizedInput, targetSize);
-    cv::resize(benchmarkImage, resizedBenchmark, targetSize);
-    cv::resize(customImage, resizedCustom, targetSize);
-
-    if (resizedInput.type() != resizedBenchmark.type() || resizedInput.type() != resizedCustom.type()) {
-        resizedBenchmark.convertTo(resizedBenchmark, resizedInput.type());
-        resizedCustom.convertTo(resizedCustom, resizedInput.type());
+    // Check if any image is empty
+    for (const auto& img : images) {
+        if (img.empty()) {
+            std::cerr << "Error: One or more input images are empty." << std::endl;
+            return;
+        }
     }
 
-    // Combine input, benchmark, and custom images side by side
+    // Resize all images to the size of the first image
+    cv::Size targetSize = images[0].size();
+    int targetType = images[0].type();
+    std::vector<cv::Mat> resizedImages;
+
+    for (const auto& img : images) {
+        cv::Mat resized;
+        cv::resize(img, resized, targetSize);
+        if (resized.type() != targetType) {
+            resized.convertTo(resized, targetType);
+        }
+        resizedImages.push_back(resized);
+    }
+
+    // Combine all images side by side
     cv::Mat combinedImage;
-    cv::hconcat(std::vector<cv::Mat>{resizedInput, resizedBenchmark, resizedCustom}, combinedImage);
-    cv::imshow("Input, Benchmark, and Custom Images", combinedImage);
+    cv::hconcat(resizedImages, combinedImage);
+    cv::imshow("Images", combinedImage);
     cv::waitKey(0); // Wait for a key press
 }
 

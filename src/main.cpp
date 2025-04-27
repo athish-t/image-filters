@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     op->applyWithBenchmark(benchmarkResult);
     op->apply(customResult);
 
-    displayImages(image, benchmarkResult, customResult);
+    displayImages({std::cref(image), std::cref(benchmarkResult), std::cref(customResult)});
     writeImage(outputImagePath, customResult);
 
     return 0;

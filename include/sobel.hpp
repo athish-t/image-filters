@@ -6,6 +6,18 @@
 class SobelOperator : public IOperator
 {
 public:
+    static constexpr int KERNELX[3][3] = {
+        {-1, 0, 1},
+        {-2, 0, 2},
+        {-1, 0, 1}
+    };
+
+    static constexpr int KERNELY[3][3] = {
+        {1, 2, 1},
+        {0, 0, 0},
+        {-1, -2, -1}
+    };
+
     SobelOperator(const cv::Mat& inputImage)
         : _inputImage(inputImage) {}
 

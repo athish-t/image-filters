@@ -1,6 +1,8 @@
 # pragma once
 
 #include "IOperator.hpp"
+#include "types.hpp"
+
 #include <opencv2/opencv.hpp>
 
 class SobelOperator : public IOperator
@@ -25,7 +27,8 @@ public:
     void applyWithBenchmark(cv::Mat& output) override;
 
 private:
-    void applyKernel(const std::vector<uchar>& input, std::vector<uchar>& output, int rows, int cols);
+    // Specify uchar as the template type for FlatArray
+    void applyKernel(const FlatArray<uchar>& input, FlatArray<uchar>& output, int rows, int cols);
 
     const cv::Mat& _inputImage;
 };

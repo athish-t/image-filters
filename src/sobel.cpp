@@ -3,6 +3,9 @@
 #include "prof_utils.hpp"
 #include "sobel.hpp"
 
+constexpr int NORMALIZED_GRADIENT_THRESHOLD = 50;
+constexpr float NORMALIZATION_FACTOR = 0.5;
+
 void SobelOperator::applyWithBenchmark(cv::Mat& output) {
     PROF_EXEC_TIME;
 
@@ -82,8 +85,11 @@ void SobelOperator::applyKernel(const std::vector<std::vector<uchar>>& input, st
                 }
             }
 
-            int g = static_cast<int>(std::sqrt(gx * gx + gy * gy));
-            output[idxi][idxj] = static_cast<uchar>(g * 255 / std::sqrt(2 * 255 * 255));
+            int g = static_cast<int>((std::abs(gx) + std::abs(gy)) * NORMALIZATION_FACTOR);
+            if (g < NORMALIZED_GRADIENT_THRESHOLD) {
+                g = 0;
+            }
+            output[idxi][idxj] = static_cast<uchar>(std::min(255, std::max(0, g)));
         }
     });
 }

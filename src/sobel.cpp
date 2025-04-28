@@ -60,10 +60,6 @@ void applyKernel(const std::vector<std::vector<uchar>>& input, std::vector<std::
     int cols = input[0].size();
     output.resize(rows, std::vector<uchar>(cols));
 
-    int maxGradient = 0;
-
-    // First pass: Compute gradients and find the maximum gradient
-    std::vector<std::vector<int>> gradients(rows, std::vector<int>(cols, 0));
     for (int i = 1; i < rows - 1; ++i) {
         for (int j = 1; j < cols - 1; ++j) {
             int gx = 0;
@@ -76,16 +72,8 @@ void applyKernel(const std::vector<std::vector<uchar>>& input, std::vector<std::
                 }
             }
 
-            int g = std::abs(gx) + std::abs(gy); // Approximation of gradient magnitude
-            gradients[i][j] = g;
-            maxGradient = std::max(maxGradient, g);
-        }
-    }
-
-    // Second pass: Normalize gradients to the range [0, 255]
-    for (int i = 1; i < rows - 1; ++i) {
-        for (int j = 1; j < cols - 1; ++j) {
-            output[i][j] = static_cast<uchar>(gradients[i][j] * 255 / maxGradient);
+            int g = static_cast<int>(std::sqrt(gx * gx + gy * gy));
+            output[i][j] = static_cast<uchar>(g * 255 / std::sqrt(2 * 255 * 255));
         }
     }
 }

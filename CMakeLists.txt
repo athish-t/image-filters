@@ -25,3 +25,5 @@ add_executable(main ${SRC_FILES})
 
 # Link OpenCV libraries
 target_link_libraries(main ${OpenCV_LIBS})
+find_package(TBB REQUIRED)
+target_link_libraries(main TBB::tbb)

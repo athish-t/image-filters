@@ -1,3 +1,5 @@
+#include <execution>
+
 #include "prof_utils.hpp"
 #include "sobel.hpp"
 
@@ -15,20 +17,23 @@ uchar convertPixelToGreyScale(cv::Vec3b pixel) {
 
 void convertTo2DArray(const cv::Mat& input, std::vector<std::vector<uchar>>& output) {
     output.resize(input.rows, std::vector<uchar>(input.cols));
-    for (int i = 0; i < input.rows; ++i) {
-        for (int j = 0; j < input.cols; ++j) {
-            output[i][j] = convertPixelToGreyScale(input.at<cv::Vec3b>(i, j));
-        }
-    }
+    std::for_each(std::execution::par, input.begin<cv::Vec3b>(), input.end<cv::Vec3b>(), [&](const cv::Vec3b& pixel) {
+        int idx = &pixel - input.ptr<cv::Vec3b>();
+        int i = idx / input.cols;
+        int j = idx % input.cols;
+        output[i][j] = convertPixelToGreyScale(pixel);
+    });
 }
 
 void convertToCvMat(const std::vector<std::vector<uchar>>& input, cv::Mat& output, int type) {
     output = cv::Mat(input.size(), input[0].size(), type);
-    for (int i = 0; i < input.size(); ++i) {
-        for (int j = 0; j < input[i].size(); ++j) {
-            output.at<uchar>(i, j) = input[i][j];
-        }
-    }
+    std::for_each(std::execution::par, input.begin(), input.end(), [&](const std::vector<uchar>& row) {
+        int i = &row - &input[0];
+        std::for_each(row.begin(), row.end(), [&](const uchar& value) {
+            int j = &value - &row[0];
+            output.at<uchar>(i, j) = value;
+        });
+    });
 }
 
 void padBounderies(std::vector<std::vector<uchar>>& input) {
@@ -36,46 +41,53 @@ void padBounderies(std::vector<std::vector<uchar>>& input) {
     int cols = input[0].size();
     std::vector<std::vector<uchar>> padded(rows + 2, std::vector<uchar>(cols + 2));
 
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            padded[i + 1][j + 1] = input[i][j];
-        }
-    }
+    std::for_each(std::execution::par, input.begin(), input.end(), [&](const std::vector<uchar>& row) {
+        int i = &row - &input[0];
+        std::for_each(row.begin(), row.end(), [&](const uchar& value) {
+            int j = &value - &row[0];
+            padded[i + 1][j + 1] = value;
+        });
+    });
 
-    for (int i = 0; i < rows + 2; ++i) {
-        padded[i][0] = padded[i][1];
-        padded[i][cols + 1] = padded[i][cols];
-    }
+    std::for_each(std::execution::par, padded.begin(), padded.end(), [&](std::vector<uchar>& row) {
+        int i = &row - &padded[0];
+        if (i == 0 || i == rows + 1) return;
+        row[0] = row[1];
+        row[cols + 1] = row[cols];
+    });
 
-    for (int j = 0; j < cols + 2; ++j) {
+    std::for_each(std::execution::par, padded[0].begin(), padded[0].end(), [&](uchar& value) {
+        int j = &value - &padded[0][0];
         padded[0][j] = padded[1][j];
         padded[rows + 1][j] = padded[rows][j];
-    }
+    });
 
     input.swap(padded);
 }
 
-void applyKernel(const std::vector<std::vector<uchar>>& input, std::vector<std::vector<uchar>>& output) {
+void SobelOperator::applyKernel(const std::vector<std::vector<uchar>>& input, std::vector<std::vector<uchar>>& output) {
     int rows = input.size();
     int cols = input[0].size();
     output.resize(rows, std::vector<uchar>(cols));
 
-    for (int i = 1; i < rows - 1; ++i) {
-        for (int j = 1; j < cols - 1; ++j) {
+    std::for_each(std::execution::par, input.begin() + 1, input.end() - 1, [&](const std::vector<uchar>& row) {
+        int idxi = &row - &input[0];
+        std::for_each(row.begin() + 1, row.end() - 1, [&](const uchar& value) {
+            int idxj = &value - &row[0];
             int gx = 0;
             int gy = 0;
 
             for (int kx = -1; kx <= 1; ++kx) {
                 for (int ky = -1; ky <= 1; ++ky) {
-                    gx += SobelOperator::KERNELX[kx + 1][ky + 1] * input[i + kx][j + ky];
-                    gy += SobelOperator::KERNELY[kx + 1][ky + 1] * input[i + kx][j + ky];
+                    gx += SobelOperator::KERNELX[kx + 1][ky + 1] * input[idxi + kx][idxj + ky];
+                    gy += SobelOperator::KERNELY[kx + 1][ky + 1] * input[idxi + kx][idxj + ky];
                 }
             }
 
             int g = static_cast<int>(std::sqrt(gx * gx + gy * gy));
-            output[i][j] = static_cast<uchar>(g * 255 / std::sqrt(2 * 255 * 255));
-        }
-    }
+            output[idxi][idxj] = static_cast<uchar>(g * 255 / std::sqrt(2 * 255 * 255));
+        });
+    });
 }
 
 void SobelOperator::apply(cv::Mat& output) {

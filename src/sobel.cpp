@@ -100,6 +100,4 @@ void SobelOperator::apply(cv::Mat& output) {
     applyKernel(input, output2D);
 
     convertToCvMat(output2D, output, CV_8UC1);
-    // cv::imshow("test", output);
-    // cv::waitKey(0);
 }

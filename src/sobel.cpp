@@ -66,30 +66,47 @@ void convertToPadded2DArray(const cv::Mat& input, std::vector<std::vector<uchar>
 }
 
 void SobelOperator::applyKernel(const std::vector<std::vector<uchar>>& input, std::vector<std::vector<uchar>>& output) {
-    int rows = input.size();
-    int cols = input[0].size();
-    output.resize(rows, std::vector<uchar>(cols));
+    const int rows = input.size();
+    const int cols = input[0].size();
 
-    // Parallelize the outer loop by dividing the image into chunks
-    std::for_each(std::execution::par, input.begin() + 1, input.end() - 1, [&](const std::vector<uchar>& row) {
-        int idxi = &row - &input[0];
+    output.resize(rows, std::vector<uchar>(cols, 0)); // Initialize with zeros
+
+    std::vector<int> row_indices(rows - 2);
+    std::iota(row_indices.begin(), row_indices.end(), 1); // [1, 2, ..., rows-2]
+
+    std::for_each(std::execution::par, row_indices.begin(), row_indices.end(), [&](int idxi) {
         for (int idxj = 1; idxj < cols - 1; ++idxj) {
             int gx = 0;
             int gy = 0;
 
-            // Apply Sobel kernel
-            for (int kx = -1; kx <= 1; ++kx) {
-                for (int ky = -1; ky <= 1; ++ky) {
-                    gx += SobelOperator::KERNELX[kx + 1][ky + 1] * input[idxi + kx][idxj + ky];
-                    gy += SobelOperator::KERNELY[kx + 1][ky + 1] * input[idxi + kx][idxj + ky];
-                }
+            // Unroll the Sobel kernel manually for better performance
+            gx += input[idxi - 1][idxj - 1] * SobelOperator::KERNELX[0][0];
+            gx += input[idxi - 1][idxj    ] * SobelOperator::KERNELX[0][1];
+            gx += input[idxi - 1][idxj + 1] * SobelOperator::KERNELX[0][2];
+            gx += input[idxi    ][idxj - 1] * SobelOperator::KERNELX[1][0];
+            gx += input[idxi    ][idxj    ] * SobelOperator::KERNELX[1][1];
+            gx += input[idxi    ][idxj + 1] * SobelOperator::KERNELX[1][2];
+            gx += input[idxi + 1][idxj - 1] * SobelOperator::KERNELX[2][0];
+            gx += input[idxi + 1][idxj    ] * SobelOperator::KERNELX[2][1];
+            gx += input[idxi + 1][idxj + 1] * SobelOperator::KERNELX[2][2];
+
+            gy += input[idxi - 1][idxj - 1] * SobelOperator::KERNELY[0][0];
+            gy += input[idxi - 1][idxj    ] * SobelOperator::KERNELY[0][1];
+            gy += input[idxi - 1][idxj + 1] * SobelOperator::KERNELY[0][2];
+            gy += input[idxi    ][idxj - 1] * SobelOperator::KERNELY[1][0];
+            gy += input[idxi    ][idxj    ] * SobelOperator::KERNELY[1][1];
+            gy += input[idxi    ][idxj + 1] * SobelOperator::KERNELY[1][2];
+            gy += input[idxi + 1][idxj - 1] * SobelOperator::KERNELY[2][0];
+            gy += input[idxi + 1][idxj    ] * SobelOperator::KERNELY[2][1];
+            gy += input[idxi + 1][idxj + 1] * SobelOperator::KERNELY[2][2];
+
+            int gradient = static_cast<int>((std::abs(gx) + std::abs(gy)) * NORMALIZATION_FACTOR);
+
+            if (gradient < NORMALIZED_GRADIENT_THRESHOLD) {
+                gradient = 0;
             }
 
-            int g = static_cast<int>((std::abs(gx) + std::abs(gy)) * NORMALIZATION_FACTOR);
-            if (g < NORMALIZED_GRADIENT_THRESHOLD) {
-                g = 0;
-            }
-            output[idxi][idxj] = static_cast<uchar>(std::min(255, std::max(0, g)));
+            output[idxi][idxj] = std::clamp(gradient, 0, 255);
         }
     });
 }

@@ -67,13 +67,14 @@ void SobelOperator::applyKernel(const std::vector<std::vector<uchar>>& input, st
     int cols = input[0].size();
     output.resize(rows, std::vector<uchar>(cols));
 
+    // Parallelize the outer loop by dividing the image into chunks
     std::for_each(std::execution::par, input.begin() + 1, input.end() - 1, [&](const std::vector<uchar>& row) {
         int idxi = &row - &input[0];
-        std::for_each(row.begin() + 1, row.end() - 1, [&](const uchar& value) {
-            int idxj = &value - &row[0];
+        for (int idxj = 1; idxj < cols - 1; ++idxj) {
             int gx = 0;
             int gy = 0;
 
+            // Apply Sobel kernel
             for (int kx = -1; kx <= 1; ++kx) {
                 for (int ky = -1; ky <= 1; ++ky) {
                     gx += SobelOperator::KERNELX[kx + 1][ky + 1] * input[idxi + kx][idxj + ky];
@@ -83,7 +84,7 @@ void SobelOperator::applyKernel(const std::vector<std::vector<uchar>>& input, st
 
             int g = static_cast<int>(std::sqrt(gx * gx + gy * gy));
             output[idxi][idxj] = static_cast<uchar>(g * 255 / std::sqrt(2 * 255 * 255));
-        });
+        }
     });
 }
 

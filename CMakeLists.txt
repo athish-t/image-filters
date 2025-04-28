@@ -7,7 +7,7 @@ project(MyNinjaProject)
 set(CMAKE_GENERATOR "Ninja")
 
 # Set the C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # Set the build type
 set(CMAKE_BUILD_TYPE Debug)

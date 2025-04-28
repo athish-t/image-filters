@@ -25,7 +25,7 @@ public:
     void applyWithBenchmark(cv::Mat& output) override;
 
 private:
-    void applyKernel(const std::vector<std::vector<uchar>>& input, std::vector<std::vector<uchar>>& output);
+    void applyKernel(const std::vector<uchar>& input, std::vector<uchar>& output, int rows, int cols);
 
     const cv::Mat& _inputImage;
 };

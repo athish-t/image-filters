@@ -2,6 +2,8 @@
 
 This project demonstrates the use of OpenCV and the Ninja build system to create a simple image processing application. The application applies various filters to an input image and saves the processed output. It includes custom implementations of filters and performs benchmarking against OpenCV's built-in filters to evaluate performance and accuracy.
 
+The code was tested on Ubunutu 20.04 (linux) 64bit x86_64 CPU, compiled with gcc-9.
+
 ## Prerequisites
 
 - OpenCV library

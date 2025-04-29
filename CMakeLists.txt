@@ -12,6 +12,9 @@ set(CMAKE_CXX_STANDARD 20)
 # Set the build type
 set(CMAKE_BUILD_TYPE Debug)
 
+# Add debug information flag
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+
 # Find OpenCV
 find_package(OpenCV REQUIRED)
 

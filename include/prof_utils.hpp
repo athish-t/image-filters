@@ -3,8 +3,11 @@
 #include <chrono>
 #include <iostream>
 
+#define PROF_EXEC_TIME_CUSTOM(name) \
+    Profiler profiler(name);
+
 #define PROF_EXEC_TIME \
-    Profiler profiler(__FUNCTION__);
+    PROF_EXEC_TIME_CUSTOM(__FUNCTION__)
 
 class Profiler {
 public:

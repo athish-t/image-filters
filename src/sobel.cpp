@@ -18,7 +18,7 @@ inline uchar convertPixelToGreyScale(cv::Vec3b pixel) {
     return static_cast<uchar>(0.299 * pixel[2] + 0.587 * pixel[1] + 0.114 * pixel[0]);
 }
 
-void convertFlatToCvMat(const FlatArray<uchar>& input, cv::Mat& output, int rows, int cols, int type) {
+void convertFlatToCvMat(const FlatImage<uchar>& input, cv::Mat& output, int rows, int cols, int type) {
     output = cv::Mat(rows, cols, type);
 
     std::for_each(std::execution::par_unseq, input.begin(), input.end(), [&](const uchar& value) {
@@ -29,7 +29,7 @@ void convertFlatToCvMat(const FlatArray<uchar>& input, cv::Mat& output, int rows
     });
 }
 
-void convertToPaddedFlatArray(const cv::Mat& input, FlatArray<uchar>& output, int& padded_rows, int& padded_cols) {
+void convertToPaddedFlatImage(const cv::Mat& input, FlatImage<uchar>& output, int& padded_rows, int& padded_cols) {
     int rows = input.rows;
     int cols = input.cols;
 
@@ -71,7 +71,7 @@ void convertToPaddedFlatArray(const cv::Mat& input, FlatArray<uchar>& output, in
     });
 }
 
-void SobelOperator::applyKernel(const FlatArray<uchar>& input, FlatArray<uchar>& output, int rows, int cols) {
+void SobelOperator::applyKernel(const FlatImage<uchar>& input, FlatImage<uchar>& output, int rows, int cols) {
     output.resize(rows, cols); // Initialize to 0
 
     std::vector<int> row_indices(rows - 2);
@@ -122,12 +122,12 @@ void SobelOperator::apply(cv::Mat& output) {
     PROF_EXEC_TIME;
 
     // Step 1: Convert input image to flat padded array
-    FlatArray<uchar> paddedInput;
+    FlatImage<uchar> paddedInput;
     int padded_rows, padded_cols;
-    convertToPaddedFlatArray(_inputImage, paddedInput, padded_rows, padded_cols);
+    convertToPaddedFlatImage(_inputImage, paddedInput, padded_rows, padded_cols);
 
     // Step 2: Create flat output array
-    FlatArray<uchar> outputFlat;
+    FlatImage<uchar> outputFlat;
     applyKernel(paddedInput, outputFlat, padded_rows, padded_cols);
 
     // Step 3: Convert flat output back to cv::Mat (removing padding)

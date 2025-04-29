@@ -27,8 +27,8 @@ public:
     void applyWithBenchmark(cv::Mat& output) override;
 
 private:
-    // Specify uchar as the template type for FlatArray
-    void applyKernel(const FlatArray<uchar>& input, FlatArray<uchar>& output, int rows, int cols);
+    // Specify uchar as the template type for FlatImage
+    void applyKernel(const FlatImage<uchar>& input, FlatImage<uchar>& output, int rows, int cols);
 
     const cv::Mat& _inputImage;
 };

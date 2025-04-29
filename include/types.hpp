@@ -1,9 +1,9 @@
 template <typename T>
-class FlatArray {
+class FlatImage {
     public:
-        FlatArray() : _rows(0), _cols(0) {} // Default constructor
+        FlatImage() : _rows(0), _cols(0) {} // Default constructor
 
-        FlatArray(int rows, int cols) : _rows(rows), _cols(cols), _data(rows * cols, 0) {}
+        FlatImage(int rows, int cols) : _rows(rows), _cols(cols), _data(rows * cols, 0) {}
 
         inline T& operator()(int i, int j) {
             return _data[i * _cols + j];

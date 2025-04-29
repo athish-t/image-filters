@@ -89,7 +89,7 @@ void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int pad
             gradient += input(idxi + 1, idxj    ) * kernel[2][1];
             gradient += input(idxi + 1, idxj + 1) * kernel[2][2];
 
-            output(idxi, idxj) = std::abs(gradient);
+            output(idxi, idxj) = std::clamp(std::abs(gradient), 0, 255);;
         }
     });
 }
@@ -108,7 +108,7 @@ void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, Fla
 
     std::for_each(std::execution::par_unseq, row_indices.begin(), row_indices.end(), [&](int idxi) {
         for (int idxj = 0; idxj < cols; ++idxj) {
-            int gradient = static_cast<int>((std::abs(gx(idxi, idxj)) + std::abs(gy(idxi, idxj))) * NORMALIZATION_FACTOR);
+            int gradient = static_cast<int>((gx(idxi, idxj) + gy(idxi, idxj)) * NORMALIZATION_FACTOR);
 
             if (gradient < NORMALIZED_GRADIENT_THRESHOLD) {
                 gradient = 0;

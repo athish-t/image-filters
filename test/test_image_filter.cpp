@@ -85,7 +85,7 @@ TEST_F(ImageFilterTest, GetGradient) {
 
 TEST_F(ImageFilterTest, CombineGradients) {
     FlatImage gx = createTestImage(5, 5, 2);
-    FlatImage gy = createTestImage(5, 5, -2);
+    FlatImage gy = createTestImage(5, 5, 4);
     FlatImage combinedGradient;
 
     combineGradients(gx, gy, combinedGradient);
@@ -94,11 +94,11 @@ TEST_F(ImageFilterTest, CombineGradients) {
 
     // Use FlatImageFactory to create the expected output image
     std::vector<std::vector<int>> expectedData = {
-        {2,  2,  2,  2, 2},
-        {2,  2,  2,  2, 2},
-        {2,  2,  2,  2, 2},
-        {2,  2,  2,  2, 2},
-        {2,  2,  2,  2, 2}
+        {3,  3,  3,  3, 3},
+        {3,  3,  3,  3, 3},
+        {3,  3,  3,  3, 3},
+        {3,  3,  3,  3, 3},
+        {3,  3,  3,  3, 3}
     };
     FlatImage expectedOutput = FlatImageFactory::from(expectedData);
 

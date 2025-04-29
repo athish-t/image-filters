@@ -24,8 +24,4 @@ public:
 
     void apply(const FlatImage& input, FlatImage& output) const override;
     void applyBenchmark(const cv::Mat& input, cv::Mat& output) const override;
-
-private:
-    // Specify uchar as the template type for FlatImage
-    void applyKernel(const FlatImage& input, FlatImage& output, int rows, int cols) const;
 };

@@ -5,11 +5,11 @@ class FlatArray {
 
         FlatArray(int rows, int cols) : _rows(rows), _cols(cols), _data(rows * cols, 0) {}
 
-        T& operator()(int i, int j) {
+        inline T& operator()(int i, int j) {
             return _data[i * _cols + j];
         }
 
-        const T& operator()(int i, int j) const {
+        inline const T& operator()(int i, int j) const {
             return _data[i * _cols + j];
         }
 
@@ -23,11 +23,11 @@ class FlatArray {
             return _data.size();
         }
 
-        T& operator[](size_t idx) {
+        inline T& operator[](size_t idx) {
             return _data[idx];
         }
 
-        const T& operator[](size_t idx) const {
+        inline const T& operator[](size_t idx) const {
             return _data[idx];
         }
 

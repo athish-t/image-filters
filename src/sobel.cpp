@@ -14,63 +14,60 @@ void SobelOperator::applyBenchmark(const cv::Mat& input, cv::Mat& output) const 
 }
 
 void padBoundaries(const FlatImage& input, FlatImage& output, int& padded_rows, int& padded_cols) {
-    int rows = input.rows();
-    int cols = input.cols();
+    PROF_EXEC_TIME;
+
+    const int rows = input.rows();
+    const int cols = input.cols();
 
     padded_rows = rows + 2;
     padded_cols = cols + 2;
 
     output.resize(padded_rows, padded_cols);
 
-    // Iterate over original pixels
-    std::for_each(std::execution::par_unseq, input.begin(), input.end(), [&](const uchar& pixel) {
-        int idx = &pixel - &input[0];
-        int i = idx / cols;
-        int j = idx % cols;
+    // 1. Copy the inner content in one go using memcpy for each row
+    for (int i = 0; i < rows; ++i) {
+        std::memcpy(&output(i + 1, 1), &input(i, 0), cols * sizeof(uchar));
+    }
 
-        // Set center pixel
-        output(i + 1, j + 1) = pixel;
+    // 2. Handle top and bottom edge rows (without corners)
+    std::memcpy(&output(0, 1), &input(0, 0), cols * sizeof(uchar));
+    std::memcpy(&output(padded_rows - 1, 1), &input(rows - 1, 0), cols * sizeof(uchar));
 
-        // Set padding top and bottom rows
-        if (i == 0) {
-            output(0, j + 1) = pixel;
-            output(rows + 1, j + 1) = pixel;
-        }
+    // 3. Handle left and right edge columns
+    for (int i = 0; i < rows; ++i) {
+        // Left edge
+        output(i + 1, 0) = input(i, 0);
+        // Right edge
+        output(i + 1, padded_cols - 1) = input(i, cols - 1);
+    }
 
-        // Set padding left and right columns
-        if (j == 0) {
-            output(i + 1, 0) = pixel;
-            output(i + 1, cols + 1) = pixel;
-        }
-
-        // Set corners
-        if (i == 0 && j == 0) {
-            output(0, 0) = pixel;
-            output(0, cols + 1) = pixel;
-            output(rows + 1, 0) = pixel;
-            output(rows + 1, cols + 1) = pixel;
-        }
-    });
+    // 4. Handle the four corners
+    output(0, 0) = input(0, 0);                             // Top-left
+    output(0, padded_cols - 1) = input(0, cols - 1);        // Top-right
+    output(padded_rows - 1, 0) = input(rows - 1, 0);        // Bottom-left
+    output(padded_rows - 1, padded_cols - 1) = input(rows - 1, cols - 1); // Bottom-right
 }
 
+
 void removeBoundaries(const FlatImage& input, FlatImage& output) {
-    int rows = input.rows() - 2;
-    int cols = input.cols() - 2;
+    PROF_EXEC_TIME;
+
+    const int padded_rows = input.rows();
+    const int padded_cols = input.cols();
+    const int rows = padded_rows - 2;
+    const int cols = padded_cols - 2;
 
     output.resize(rows, cols);
 
-    std::for_each(std::execution::par_unseq, input.begin(), input.end(), [&](const uchar& pixel) {
-        int idx = &pixel - &input[0];
-        int i = idx / input.cols();
-        int j = idx % input.cols();
-
-        if (i > 0 && i < rows + 1 && j > 0 && j < cols + 1) {
-            output(i - 1, j - 1) = pixel;
-        }
-    });
+    // Use memcpy for each row - much faster than element-by-element copying
+    for (int i = 0; i < rows; ++i) {
+        std::memcpy(&output(i, 0), &input(i + 1, 1), cols * sizeof(uchar));
+    }
 }
 
 void SobelOperator::applyKernel(const FlatImage& input, FlatImage& output, int rows, int cols) const {
+    PROF_EXEC_TIME;
+
     output.resize(rows, cols); // Initialize to 0
 
     std::vector<int> row_indices(rows - 2);
@@ -124,20 +121,8 @@ void SobelOperator::apply(const FlatImage& input, FlatImage& output) const {
     int padded_rows, padded_cols;
     padBoundaries(input, paddedImage, padded_rows, padded_cols);
 
-    cv::Mat customResultMat(paddedImage.rows(), paddedImage.cols(), CV_8UC1, const_cast<uchar*>(paddedImage.data().data()));
-    cv::imshow("Padded Image", customResultMat);
-    cv::waitKey(0);
-
     FlatImage convOutput;
     applyKernel(paddedImage, convOutput, padded_rows, padded_cols);
 
-    cv::Mat d(convOutput.rows(), convOutput.cols(), CV_8UC1, const_cast<uchar*>(convOutput.data().data()));
-    cv::imshow("d", d);
-    cv::waitKey(0);
-
     removeBoundaries(convOutput, output);
-
-    cv::Mat s(output.rows(), output.cols(), CV_8UC1, const_cast<uchar*>(output.data().data()));
-    cv::imshow("s", s);
-    cv::waitKey(0);
 }

@@ -20,12 +20,10 @@ int main(int argc, char** argv) {
     auto pipeline = FilterPipeline().add(std::make_shared<SobelOperator>());
 
     cv::Mat benchmarkResult;
-    pipeline
-    .applyBenchmark(image, benchmarkResult);
+    pipeline.applyBenchmark(image, benchmarkResult);
 
     FlatImage customResult;
-    pipeline
-    .apply(FlatImageFactory::from(image), customResult);
+    pipeline.apply(FlatImageFactory::from(image), customResult);
 
     cv::Mat customResultMat(customResult.rows(), customResult.cols(), CV_8UC1, const_cast<uchar*>(customResult.data().data()));
     displayImages({std::cref(image), std::cref(benchmarkResult), std::cref(customResultMat)});

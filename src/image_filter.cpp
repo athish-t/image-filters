@@ -92,10 +92,11 @@ void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int pad
 
 void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, FlatImage& combinedGradient, uchar threshold) {
     assert(gx.rows() == gy.rows() && gx.cols() == gy.cols());
+    PROF_EXEC_TIME;
+
     int rows = gx.rows();
     int cols = gx.cols();
 
-    PROF_EXEC_TIME;
 
     combinedGradient.resize(rows, cols);
 
@@ -112,6 +113,8 @@ void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, Fla
 
 template <typename KType>
 void ImageFilter::applyXYKernels(const FlatImage& input, FlatImage& output, const KType kernelX[3][3], const KType kernelY[3][3], uchar threshold) const {
+    PROF_EXEC_TIME;
+
     FlatImage paddedImage;
     auto [padded_rows, padded_cols] = padBoundaries(input, paddedImage);
 
@@ -127,6 +130,8 @@ void ImageFilter::applyXYKernels(const FlatImage& input, FlatImage& output, cons
 
 template <typename KType>
 void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const KType kernel[3][3], uchar threshold) const {
+    PROF_EXEC_TIME;
+
     FlatImage paddedImage;
     auto [padded_rows, padded_cols] = padBoundaries(input, paddedImage);
 

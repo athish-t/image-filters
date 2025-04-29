@@ -136,3 +136,39 @@ TEST_F(ImageFilterTest, ApplySingleKernel) {
         }
     }
 }
+
+TEST_F(ImageFilterTest, ApplyXYKernels) {
+    FlatImage input = createTestImage(5, 5, 1);
+    FlatImage output;
+
+    const int kernelX[3][3] = {
+        {1, 0, 1},
+        {1, 0, 1},
+        {1, 0, 1}
+    };
+
+    const int kernelY[3][3] = {
+        {1,  1,  1},
+        {0,  0,  0},
+        {1,  1,  1}
+    };
+
+    applyXYKernels(input, output, kernelX, kernelY);
+
+    ASSERT_FALSE(output.empty());
+
+    std::vector<std::vector<int>> expectedData = {
+        {6,  6,  6,  6, 6},
+        {6,  6,  6,  6, 6},
+        {6,  6,  6,  6, 6},
+        {6,  6,  6,  6, 6},
+        {6,  6,  6,  6, 6}
+    };
+    FlatImage expectedOutput = FlatImageFactory::from(expectedData);
+
+    for (int i = 0; i < output.rows(); ++i) {
+        for (int j = 0; j < output.cols(); ++j) {
+            ASSERT_EQ(output(i, j), expectedOutput(i, j));
+        }
+    }
+}

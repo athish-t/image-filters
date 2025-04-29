@@ -13,7 +13,7 @@ public:
 
 protected:
     template <typename KType>
-    void applyXYkernels(const FlatImage& input, FlatImage& output, const KType kernelX[3][3], const KType kernelY[3][3], uchar threshold = 0) const;
+    void applyXYKernels(const FlatImage& input, FlatImage& output, const KType kernelX[3][3], const KType kernelY[3][3], uchar threshold = 0) const;
     template <typename KType>
     void applySingleKernel(const FlatImage& input, FlatImage& output, const KType kernel[3][3], uchar threshold = 0) const;
 

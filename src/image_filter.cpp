@@ -111,7 +111,7 @@ void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, Fla
 }
 
 template <typename KType>
-void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const KType kernelX[3][3], const KType kernelY[3][3], uchar threshold) const {
+void ImageFilter::applyXYKernels(const FlatImage& input, FlatImage& output, const KType kernelX[3][3], const KType kernelY[3][3], uchar threshold) const {
     FlatImage paddedImage;
     auto [padded_rows, padded_cols] = padBoundaries(input, paddedImage);
 
@@ -137,8 +137,8 @@ void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, c
 }
 
 // Explicit template instantiation
-template void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const int kernelX[3][3], const int kernelY[3][3], uchar threshold) const;
-template void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const float kernelX[3][3], const float kernelY[3][3], uchar threshold) const;
+template void ImageFilter::applyXYKernels(const FlatImage& input, FlatImage& output, const int kernelX[3][3], const int kernelY[3][3], uchar threshold) const;
+template void ImageFilter::applyXYKernels(const FlatImage& input, FlatImage& output, const float kernelX[3][3], const float kernelY[3][3], uchar threshold) const;
 template void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const int kernel[3][3], uchar threshold) const;
 template void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const float kernel[3][3], uchar threshold) const;
 template void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const int kernel[3][3], uchar threshold);

@@ -8,5 +8,5 @@ void ScharrOperator::applyBenchmark(const cv::Mat& input, cv::Mat& output) const
 
 void ScharrOperator::apply(const FlatImage& input, FlatImage& output) const {
     PROF_EXEC_TIME;
-    applyXYkernels(input, output, KERNELX, KERNELY, 50);
+    applyXYKernels(input, output, KERNELX, KERNELY, 50);
 }

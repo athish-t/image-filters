@@ -20,6 +20,6 @@ protected:
     static std::pair<int, int> padBoundaries(const FlatImage& input, FlatImage& output);
     static void removeBoundaries(const FlatImage& input, FlatImage& output);
     template <typename KType> static void getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const KType kernel[3][3]);
-    static void combineGradients(const FlatImage& gx, const FlatImage& gy, FlatImage& combinedGradient, int padded_rows, int padded_cols);
+    static void combineGradients(const FlatImage& gx, const FlatImage& gy, FlatImage& combinedGradient);
 
 };

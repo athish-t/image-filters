@@ -3,6 +3,7 @@
 #include "image_filter.hpp"
 #include "prof_utils.hpp"
 #include "types.hpp"
+#include <opencv2/opencv.hpp>
 
 
 constexpr int NORMALIZED_GRADIENT_THRESHOLD = 50;
@@ -93,14 +94,20 @@ void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int pad
     });
 }
 
-void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, FlatImage& combinedGradient, int padded_rows, int padded_cols) {
+void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, FlatImage& combinedGradient) {
+    assert(gx.rows() == gy.rows() && gx.cols() == gy.cols());
+    int rows = gx.rows();
+    int cols = gx.cols();
+
     PROF_EXEC_TIME;
 
-    std::vector<int> row_indices(padded_rows - 2);
-    std::iota(row_indices.begin(), row_indices.end(), 1); // [1, 2, ..., padded_rows-2]
+    combinedGradient.resize(rows, cols);
+
+    std::vector<int> row_indices(rows);
+    std::iota(row_indices.begin(), row_indices.end(), 0); // [0, 1, 2, ..., rows - 1]
 
     std::for_each(std::execution::par_unseq, row_indices.begin(), row_indices.end(), [&](int idxi) {
-        for (int idxj = 1; idxj < padded_cols - 1; ++idxj) {
+        for (int idxj = 0; idxj < cols; ++idxj) {
             int gradient = static_cast<int>((std::abs(gx(idxi, idxj)) + std::abs(gy(idxi, idxj))) * NORMALIZATION_FACTOR);
 
             if (gradient < NORMALIZED_GRADIENT_THRESHOLD) {
@@ -121,8 +128,8 @@ void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, cons
     getGradient(paddedImage, gx, padded_rows, padded_cols, kernelX);
     getGradient(paddedImage, gy, padded_rows, padded_cols, kernelY);
 
-    FlatImage combinedGradient(padded_rows, padded_cols);
-    combineGradients(gx, gy, combinedGradient, padded_rows, padded_cols);
+    FlatImage combinedGradient;
+    combineGradients(gx, gy, combinedGradient);
 
     removeBoundaries(combinedGradient, output);
 }

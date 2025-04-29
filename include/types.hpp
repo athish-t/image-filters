@@ -12,7 +12,7 @@ class FlatArray {
 
         FlatArray(int rows, int cols) : _rows(rows), _cols(cols), _data(rows * cols, 0) {}
 
-        const std::vector<T>& data() {
+        const std::vector<T>& data() const {
             return _data;
         }
 

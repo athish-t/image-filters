@@ -42,6 +42,7 @@ target_sources(test_image_filter PRIVATE src/image_filter.cpp)
 # Link test executable with Google Test and project libraries
 target_link_libraries(test_image_filter GTest::GTest GTest::Main)
 target_link_libraries(test_image_filter TBB::tbb)
+target_link_libraries(test_image_filter ${OpenCV_LIBS})
 
 # Add test to CTest
 add_test(NAME ImageFilterTests COMMAND test_image_filter)

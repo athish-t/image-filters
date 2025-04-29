@@ -88,7 +88,7 @@ TEST_F(ImageFilterTest, CombineGradients) {
     FlatImage gy = createTestImage(5, 5, -2);
     FlatImage combinedGradient;
 
-    combineGradients(gx, gy, combinedGradient, gx.rows(), gx.cols());
+    combineGradients(gx, gy, combinedGradient);
 
     ASSERT_FALSE(combinedGradient.empty());
 
@@ -105,6 +105,37 @@ TEST_F(ImageFilterTest, CombineGradients) {
     for (int i = 0; i < combinedGradient.rows(); ++i) {
         for (int j = 0; j < combinedGradient.cols(); ++j) {
             ASSERT_EQ(combinedGradient(i, j), expectedOutput(i, j));
+        }
+    }
+}
+
+TEST_F(ImageFilterTest, ApplySingleKernel) {
+    FlatImage input = createTestImage(5, 5, 1); // Create a test image with all values set to 1
+    FlatImage output;
+
+    const int kernel[3][3] = {
+        {1, 1, 1},
+        {1, 1, 1},
+        {1, 1, 1}
+    };
+
+    applySingleKernel(input, output, kernel);
+
+    ASSERT_FALSE(output.empty());
+
+    // Use FlatImageFactory to create the expected output image
+    std::vector<std::vector<int>> expectedData = {
+        {9,  9,  9,  9, 9},
+        {9,  9,  9,  9, 9},
+        {9,  9,  9,  9, 9},
+        {9,  9,  9,  9, 9},
+        {9,  9,  9,  9, 9}
+    };
+    FlatImage expectedOutput = FlatImageFactory::from(expectedData);
+
+    for (int i = 0; i < output.rows(); ++i) {
+        for (int j = 0; j < output.cols(); ++j) {
+            ASSERT_EQ(output(i, j), expectedOutput(i, j));
         }
     }
 }

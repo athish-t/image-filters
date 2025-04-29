@@ -12,7 +12,7 @@ public:
 
 
 TEST_F(ImageFilterTest, PadBoundaries) {
-    FlatImage input = createTestImage();
+    FlatImage input = createTestImage(5, 5);
     FlatImage output;
 
     auto [padded_rows, padded_cols] = padBoundaries(input, output);
@@ -37,39 +37,74 @@ TEST_F(ImageFilterTest, PadBoundaries) {
 }
 
 TEST_F(ImageFilterTest, RemoveBoundaries) {
-    FlatImage input = createTestImageWithPadding(); // Helper function to create a padded test image
+    FlatImage input = createTestImage(5, 5); // Helper function to create a padded test image
     FlatImage output;
 
     removeBoundaries(input, output);
 
     ASSERT_EQ(output.rows(), input.rows() - 2);
     ASSERT_EQ(output.cols(), input.cols() - 2);
-    // Add more assertions to validate the boundary removal
+
+    for (int i = 0; i < output.rows(); ++i) {
+        for (int j = 0; j < output.cols(); ++j) {
+            ASSERT_EQ(output(i, j), input(i + 1, j + 1)); // Validate that the inner region matches
+        }
+    }
 }
 
 TEST_F(ImageFilterTest, GetGradient) {
-    FlatImage input = createTestImage();
+    FlatImage input = createTestImage(5, 5, 1);
     FlatImage output;
 
     const int kernel[3][3] = {
-        {0, 1, 0},
         {1, 1, 1},
-        {0, 1, 0}
+        {1, 1, 1},
+        {1, 1, 1}
     };
 
     getGradient(input, output, input.rows(), input.cols(), kernel);
 
     ASSERT_FALSE(output.empty());
-    // Add more assertions to validate the gradient
+
+    // Use FlatImageFactory to create the expected output image
+    std::vector<std::vector<int>> expectedData = {
+        {0,  0,  0,  0, 0},
+        {0,  9,  9,  9, 0},
+        {0,  9,  9,  9, 0},
+        {0,  9,  9,  9, 0},
+        {0,  0,  0,  0, 0}
+    };
+    FlatImage expectedOutput = FlatImageFactory::from(expectedData);
+
+    for (int i = 1; i < output.rows() - 1; ++i) {
+        for (int j = 1; j < output.cols() - 1; ++j) {
+            ASSERT_EQ(output(i, j), expectedOutput(i, j));
+        }
+    }
 }
 
 TEST_F(ImageFilterTest, CombineGradients) {
-    FlatImage gx = createTestImage();
-    FlatImage gy = createTestImage();
+    FlatImage gx = createTestImage(5, 5, 2);
+    FlatImage gy = createTestImage(5, 5, -2);
     FlatImage combinedGradient;
 
     combineGradients(gx, gy, combinedGradient, gx.rows(), gx.cols());
 
     ASSERT_FALSE(combinedGradient.empty());
-    // Add more assertions to validate the combined gradient
+
+    // Use FlatImageFactory to create the expected output image
+    std::vector<std::vector<int>> expectedData = {
+        {2,  2,  2,  2, 2},
+        {2,  2,  2,  2, 2},
+        {2,  2,  2,  2, 2},
+        {2,  2,  2,  2, 2},
+        {2,  2,  2,  2, 2}
+    };
+    FlatImage expectedOutput = FlatImageFactory::from(expectedData);
+
+    for (int i = 0; i < combinedGradient.rows(); ++i) {
+        for (int j = 0; j < combinedGradient.cols(); ++j) {
+            ASSERT_EQ(combinedGradient(i, j), expectedOutput(i, j));
+        }
+    }
 }

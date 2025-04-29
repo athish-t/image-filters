@@ -79,4 +79,23 @@ public:
         std::copy(mat.data, mat.data + mat.total(), flatImage._data.begin());
         return flatImage;
     }
+
+    template <typename T>
+    static FlatImage from(const std::vector<std::vector<T>>& array2d) {
+        if (array2d.empty() || array2d[0].empty()) {
+            throw std::invalid_argument("Input 2D array cannot be empty.");
+        }
+        int rows = array2d.size();
+        int cols = array2d[0].size();
+        FlatImage flatImage(rows, cols);
+        for (int i = 0; i < rows; ++i) {
+            if (array2d[i].size() != cols) {
+                throw std::invalid_argument("All rows in the 2D array must have the same number of columns.");
+            }
+            for (int j = 0; j < cols; ++j) {
+                flatImage(i, j) = static_cast<uchar>(array2d[i][j]);
+            }
+        }
+        return flatImage;
+    }
 };

@@ -1,11 +1,11 @@
 # pragma once
 
-#include "IOperator.hpp"
+#include "image_filter.hpp"
 #include "types.hpp"
 
 #include <opencv2/opencv.hpp>
 
-class SobelOperator : public IOperator
+class SobelOperator : public ImageFilter
 {
 public:
     static constexpr int KERNELX[3][3] = {
@@ -20,15 +20,12 @@ public:
         {-1, -2, -1}
     };
 
-    SobelOperator(const cv::Mat& inputImage)
-        : _inputImage(inputImage) {}
+    SobelOperator() {}
 
-    void apply(cv::Mat& output) override;
-    void applyWithBenchmark(cv::Mat& output) override;
+    void apply(const FlatImage& input, FlatImage& output) const override;
+    void applyBenchmark(const cv::Mat& input, cv::Mat& output) const override;
 
 private:
     // Specify uchar as the template type for FlatImage
-    void applyKernel(const FlatImage<uchar>& input, FlatImage<uchar>& output, int rows, int cols);
-
-    const cv::Mat& _inputImage;
+    void applyKernel(const FlatImage& input, FlatImage& output, int rows, int cols) const;
 };

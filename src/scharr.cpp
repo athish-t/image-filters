@@ -1,9 +1,9 @@
 #include "scharr.hpp"
 
-void ScharrOperator::applyWithBenchmark(cv::Mat& output) {
-    cv::Scharr(_inputImage, output, CV_8U, 1, 0);
+void ScharrOperator::applyBenchmark(const cv::Mat& input, cv::Mat& output) const {
+    cv::Scharr(input, output, CV_8U, 1, 0);
 }
 
-void ScharrOperator::apply(cv::Mat& output) {
-    cv::Scharr(_inputImage, output, CV_8U, 1, 0);
+void ScharrOperator::apply(const FlatImage& input, FlatImage& output) const {
+
 }

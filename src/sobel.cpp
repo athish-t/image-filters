@@ -1,37 +1,21 @@
 #include <execution>
 
 #include "prof_utils.hpp"
+#include "img_utils.hpp"
 #include "sobel.hpp"
 
 constexpr int NORMALIZED_GRADIENT_THRESHOLD = 50;
 constexpr float NORMALIZATION_FACTOR = 0.5;
 
-void SobelOperator::applyWithBenchmark(cv::Mat& output) {
+void SobelOperator::applyBenchmark(const cv::Mat& input, cv::Mat& output) const {
     PROF_EXEC_TIME;
 
-    cv::Mat greyImage;
-    cv::cvtColor(_inputImage, greyImage, cv::COLOR_BGR2GRAY);
-    cv::Sobel(greyImage, output, CV_8U, 1, 1);
+    cv::Sobel(input, output, CV_8U, 1, 1);
 }
 
-inline uchar convertPixelToGreyScale(cv::Vec3b pixel) {
-    return static_cast<uchar>(0.299 * pixel[2] + 0.587 * pixel[1] + 0.114 * pixel[0]);
-}
-
-void convertFlatToCvMat(const FlatImage<uchar>& input, cv::Mat& output, int rows, int cols, int type) {
-    output = cv::Mat(rows, cols, type);
-
-    std::for_each(std::execution::par_unseq, input.begin(), input.end(), [&](const uchar& value) {
-        int idx = &value - &input[0];
-        int i = idx / cols;
-        int j = idx % cols;
-        output.at<uchar>(i, j) = value;
-    });
-}
-
-void convertToPaddedFlatImage(const cv::Mat& input, FlatImage<uchar>& output, int& padded_rows, int& padded_cols) {
-    int rows = input.rows;
-    int cols = input.cols;
+void padBoundaries(const FlatImage& input, FlatImage& output, int& padded_rows, int& padded_cols) {
+    int rows = input.rows();
+    int cols = input.cols();
 
     padded_rows = rows + 2;
     padded_cols = cols + 2;
@@ -39,39 +23,54 @@ void convertToPaddedFlatImage(const cv::Mat& input, FlatImage<uchar>& output, in
     output.resize(padded_rows, padded_cols);
 
     // Iterate over original pixels
-    std::for_each(std::execution::par_unseq, input.begin<cv::Vec3b>(), input.end<cv::Vec3b>(), [&](const cv::Vec3b& pixel) {
-        int idx = &pixel - input.ptr<cv::Vec3b>();
+    std::for_each(std::execution::par_unseq, input.begin(), input.end(), [&](const uchar& pixel) {
+        int idx = &pixel - &input[0];
         int i = idx / cols;
         int j = idx % cols;
 
-        uchar greyValue = convertPixelToGreyScale(pixel);
-
         // Set center pixel
-        output(i + 1, j + 1) = greyValue;
+        output(i + 1, j + 1) = pixel;
 
         // Set padding top and bottom rows
         if (i == 0) {
-            output(0, j + 1) = greyValue;
-            output(rows + 1, j + 1) = greyValue;
+            output(0, j + 1) = pixel;
+            output(rows + 1, j + 1) = pixel;
         }
 
         // Set padding left and right columns
         if (j == 0) {
-            output(i + 1, 0) = greyValue;
-            output(i + 1, cols + 1) = greyValue;
+            output(i + 1, 0) = pixel;
+            output(i + 1, cols + 1) = pixel;
         }
 
         // Set corners
         if (i == 0 && j == 0) {
-            output(0, 0) = greyValue;
-            output(0, cols + 1) = greyValue;
-            output(rows + 1, 0) = greyValue;
-            output(rows + 1, cols + 1) = greyValue;
+            output(0, 0) = pixel;
+            output(0, cols + 1) = pixel;
+            output(rows + 1, 0) = pixel;
+            output(rows + 1, cols + 1) = pixel;
         }
     });
 }
 
-void SobelOperator::applyKernel(const FlatImage<uchar>& input, FlatImage<uchar>& output, int rows, int cols) {
+void removeBoundaries(const FlatImage& input, FlatImage& output) {
+    int rows = input.rows() - 2;
+    int cols = input.cols() - 2;
+
+    output.resize(rows, cols);
+
+    std::for_each(std::execution::par_unseq, input.begin(), input.end(), [&](const uchar& pixel) {
+        int idx = &pixel - &input[0];
+        int i = idx / input.cols();
+        int j = idx % input.cols();
+
+        if (i > 0 && i < rows + 1 && j > 0 && j < cols + 1) {
+            output(i - 1, j - 1) = pixel;
+        }
+    });
+}
+
+void SobelOperator::applyKernel(const FlatImage& input, FlatImage& output, int rows, int cols) const {
     output.resize(rows, cols); // Initialize to 0
 
     std::vector<int> row_indices(rows - 2);
@@ -118,18 +117,27 @@ void SobelOperator::applyKernel(const FlatImage<uchar>& input, FlatImage<uchar>&
     });
 }
 
-void SobelOperator::apply(cv::Mat& output) {
+void SobelOperator::apply(const FlatImage& input, FlatImage& output) const {
     PROF_EXEC_TIME;
 
-    // Step 1: Convert input image to flat padded array
-    FlatImage<uchar> paddedInput;
+    FlatImage paddedImage;
     int padded_rows, padded_cols;
-    convertToPaddedFlatImage(_inputImage, paddedInput, padded_rows, padded_cols);
+    padBoundaries(input, paddedImage, padded_rows, padded_cols);
 
-    // Step 2: Create flat output array
-    FlatImage<uchar> outputFlat;
-    applyKernel(paddedInput, outputFlat, padded_rows, padded_cols);
+    cv::Mat customResultMat(paddedImage.rows(), paddedImage.cols(), CV_8UC1, const_cast<uchar*>(paddedImage.data().data()));
+    cv::imshow("Padded Image", customResultMat);
+    cv::waitKey(0);
 
-    // Step 3: Convert flat output back to cv::Mat (removing padding)
-    convertFlatToCvMat(outputFlat, output, padded_rows, padded_cols, CV_8UC1);
+    FlatImage convOutput;
+    applyKernel(paddedImage, convOutput, padded_rows, padded_cols);
+
+    cv::Mat d(convOutput.rows(), convOutput.cols(), CV_8UC1, const_cast<uchar*>(convOutput.data().data()));
+    cv::imshow("d", d);
+    cv::waitKey(0);
+
+    removeBoundaries(convOutput, output);
+
+    cv::Mat s(output.rows(), output.cols(), CV_8UC1, const_cast<uchar*>(output.data().data()));
+    cv::imshow("s", s);
+    cv::waitKey(0);
 }

@@ -1,17 +1,30 @@
 # pragma once
 
-#include "IOperator.hpp"
+#include "image_filter.hpp"
+#include "types.hpp"
+
 #include <opencv2/opencv.hpp>
 
-class ScharrOperator : public IOperator
+class ScharrOperator : public ImageFilter
 {
 public:
-    ScharrOperator(const cv::Mat& inputImage)
-        : _inputImage(inputImage) {}
+    static constexpr int KERNELX[3][3] = {
+        {-3, 0, 3},
+        {-10, 0, 10},
+        {-3, 0, 3}
+    };
 
-    void apply(cv::Mat& output) override;
-    void applyWithBenchmark(cv::Mat& output) override;
+    static constexpr int KERNELY[3][3] = {
+        {3, 10, 3},
+        {0, 0, 0},
+        {-3, -10, -3}
+    };
+
+    ScharrOperator() {}
+
+    void apply(const FlatImage& input, FlatImage& output) const override;
+    void applyBenchmark(const cv::Mat& input, cv::Mat& output) const override;
 
 private:
-    const cv::Mat& _inputImage;
+    void applyKernel(const FlatImage& input, FlatImage& output, int rows, int cols);
 };

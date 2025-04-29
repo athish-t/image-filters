@@ -1,4 +1,5 @@
-#include "cv_utils.hpp"
+#include "io_utils.hpp"
+#include "filter_pipeline.hpp"
 #include "sobel.hpp"
 
 int main(int argc, char** argv) {
@@ -9,22 +10,26 @@ int main(int argc, char** argv) {
 
     std::string inputImagePath = argv[1];
     std::string outputImagePath = argv[2];
-    cv::Mat image = cv::imread(inputImagePath);
+    cv::Mat image = cv::imread(inputImagePath, cv::IMREAD_GRAYSCALE);
 
     if (image.empty()) {
         std::cerr << "Failed to open the image at: " << inputImagePath << std::endl;
         return -1;
     }
 
+    auto pipeline = FilterPipeline().add(std::make_shared<SobelOperator>());
+
     cv::Mat benchmarkResult;
-    cv::Mat customResult;
+    pipeline
+    .applyBenchmark(image, benchmarkResult);
 
-    auto op = std::make_unique<SobelOperator>(image);
-    op->applyWithBenchmark(benchmarkResult);
-    op->apply(customResult);
+    FlatImage customResult;
+    pipeline
+    .apply(FlatImageFactory::from(image), customResult);
 
-    displayImages({std::cref(image), std::cref(benchmarkResult), std::cref(customResult)});
-    writeImage(outputImagePath, customResult);
+    cv::Mat customResultMat(customResult.rows(), customResult.cols(), CV_8UC1, const_cast<uchar*>(customResult.data().data()));
+    displayImages({std::cref(image), std::cref(benchmarkResult), std::cref(customResultMat)});
+    writeImage(outputImagePath, customResultMat);
 
     return 0;
 }

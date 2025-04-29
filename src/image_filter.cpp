@@ -89,7 +89,7 @@ void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int pad
             gradient += input(idxi + 1, idxj    ) * kernel[2][1];
             gradient += input(idxi + 1, idxj + 1) * kernel[2][2];
 
-            output(idxi, idxj) = gradient;
+            output(idxi, idxj) = std::abs(gradient);
         }
     });
 }

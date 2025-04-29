@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    // create pipeline of chained filters
     auto pipeline = FilterPipeline().addSobelOperator();
 
     cv::Mat benchmarkResult;
@@ -27,6 +28,7 @@ int main(int argc, char** argv) {
     FlatImage customResult;
     pipeline.apply(FlatImageFactory::from(image), customResult);
 
+    // display original image, benchmark result, and custom result
     cv::Mat customResultMat(customResult.rows(), customResult.cols(), CV_8UC1, const_cast<uchar*>(customResult.data().data()));
     displayImages({std::cref(image), std::cref(benchmarkResult), std::cref(customResultMat)});
     writeImage(outputImagePath, customResultMat);

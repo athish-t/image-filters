@@ -12,5 +12,5 @@ void Blur::applyBenchmark(const cv::Mat& input, cv::Mat& output) const {
 
 void Blur::apply(const FlatImage& input, FlatImage& output) const {
     PROF_EXEC_TIME;
-    applySingleKernel(input, output, KERNEL);
+    applySingleKernel(input, output, KERNEL, 0);
 }

@@ -6,7 +6,6 @@
 #include <opencv2/opencv.hpp>
 
 
-constexpr int NORMALIZED_GRADIENT_THRESHOLD = 50;
 constexpr float NORMALIZATION_FACTOR = 0.5;
 
 
@@ -65,7 +64,7 @@ void ImageFilter::removeBoundaries(const FlatImage& input, FlatImage& output) {
 }
 
 template <typename KType>
-void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const KType kernel[3][3]) {
+void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const KType kernel[3][3], uchar threshold) {
     PROF_EXEC_TIME;
 
     output.resize(padded_rows, padded_cols); // Initialize to 0
@@ -89,12 +88,12 @@ void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int pad
             gradient += input(idxi + 1, idxj    ) * kernel[2][1];
             gradient += input(idxi + 1, idxj + 1) * kernel[2][2];
 
-            output(idxi, idxj) = std::clamp(std::abs(gradient), 0, 255);;
+            output(idxi, idxj) =  std::abs(gradient) < threshold ? 0 : std::clamp(std::abs(gradient), 0, 255);
         }
     });
 }
 
-void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, FlatImage& combinedGradient) {
+void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, FlatImage& combinedGradient, uchar threshold) {
     assert(gx.rows() == gy.rows() && gx.cols() == gy.cols());
     int rows = gx.rows();
     int cols = gx.cols();
@@ -109,18 +108,13 @@ void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, Fla
     std::for_each(std::execution::par_unseq, row_indices.begin(), row_indices.end(), [&](int idxi) {
         for (int idxj = 0; idxj < cols; ++idxj) {
             int gradient = static_cast<int>((gx(idxi, idxj) + gy(idxi, idxj)) * NORMALIZATION_FACTOR);
-
-            if (gradient < NORMALIZED_GRADIENT_THRESHOLD) {
-                gradient = 0;
-            }
-
-            combinedGradient(idxi, idxj) = std::clamp(gradient, 0, 255);
+            combinedGradient(idxi, idxj) = gradient < threshold ? 0 : std::clamp(gradient, 0, 255);
         }
     });
 }
 
 template <typename KType>
-void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const KType kernelX[3][3], const KType kernelY[3][3]) const {
+void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const KType kernelX[3][3], const KType kernelY[3][3], uchar threshold) const {
     FlatImage paddedImage;
     auto [padded_rows, padded_cols] = padBoundaries(input, paddedImage);
 
@@ -129,26 +123,26 @@ void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, cons
     getGradient(paddedImage, gy, padded_rows, padded_cols, kernelY);
 
     FlatImage combinedGradient;
-    combineGradients(gx, gy, combinedGradient);
+    combineGradients(gx, gy, combinedGradient, threshold);
 
     removeBoundaries(combinedGradient, output);
 }
 
 template <typename KType>
-void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const KType kernel[3][3]) const {
+void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const KType kernel[3][3], uchar threshold) const {
     FlatImage paddedImage;
     auto [padded_rows, padded_cols] = padBoundaries(input, paddedImage);
 
     FlatImage gradient;
-    getGradient(paddedImage, gradient, padded_rows, padded_cols, kernel);
+    getGradient(paddedImage, gradient, padded_rows, padded_cols, kernel, threshold);
 
     removeBoundaries(gradient, output);
 }
 
 // Explicit template instantiation
-template void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const int kernelX[3][3], const int kernelY[3][3]) const;
-template void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const float kernelX[3][3], const float kernelY[3][3]) const;
-template void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const int kernel[3][3]) const;
-template void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const float kernel[3][3]) const;
-template void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const int kernel[3][3]);
-template void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const float kernel[3][3]);
+template void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const int kernelX[3][3], const int kernelY[3][3], uchar threshold) const;
+template void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const float kernelX[3][3], const float kernelY[3][3], uchar threshold) const;
+template void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const int kernel[3][3], uchar threshold) const;
+template void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const float kernel[3][3], uchar threshold) const;
+template void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const int kernel[3][3], uchar threshold);
+template void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const float kernel[3][3], uchar threshold);

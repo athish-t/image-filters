@@ -12,5 +12,5 @@ void SobelOperator::applyBenchmark(const cv::Mat& input, cv::Mat& output) const 
 
 void SobelOperator::apply(const FlatImage& input, FlatImage& output) const {
     PROF_EXEC_TIME;
-    applyXYkernels(input, output, KERNELX, KERNELY);
+    applyXYkernels(input, output, KERNELX, KERNELY, 50);
 }

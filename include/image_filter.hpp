@@ -17,7 +17,6 @@ protected:
     template <typename KType>
     void applySingleKernel(const FlatImage& input, FlatImage& output, const KType kernel[3][3]) const;
 
-private:
     static std::pair<int, int> padBoundaries(const FlatImage& input, FlatImage& output);
     static void removeBoundaries(const FlatImage& input, FlatImage& output);
     template <typename KType> static void getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const KType kernel[3][3]);

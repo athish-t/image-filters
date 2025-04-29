@@ -30,3 +30,18 @@ add_executable(main ${SRC_FILES})
 target_link_libraries(main ${OpenCV_LIBS})
 find_package(TBB REQUIRED)
 target_link_libraries(main TBB::tbb)
+
+# Add Google Test
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+# Add test executable
+add_executable(test_image_filter test/test_image_filter.cpp)
+target_sources(test_image_filter PRIVATE src/image_filter.cpp)
+
+# Link test executable with Google Test and project libraries
+target_link_libraries(test_image_filter GTest::GTest GTest::Main)
+target_link_libraries(test_image_filter TBB::tbb)
+
+# Add test to CTest
+add_test(NAME ImageFilterTests COMMAND test_image_filter)

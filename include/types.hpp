@@ -56,6 +56,10 @@ class FlatArray {
             return _cols;
         }
 
+        bool empty() const {
+            return _data.empty();
+        }
+
     private:
         friend class FlatImageFactory;
 

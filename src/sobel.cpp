@@ -1,7 +1,6 @@
 #include <execution>
 
 #include "prof_utils.hpp"
-#include "img_utils.hpp"
 #include "sobel.hpp"
 
 

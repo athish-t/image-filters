@@ -63,7 +63,8 @@ void ImageFilter::removeBoundaries(const FlatImage& input, FlatImage& output) {
     }
 }
 
-void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const int kernel[3][3]) {
+template <typename KType>
+void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const KType kernel[3][3]) {
     PROF_EXEC_TIME;
 
     output.resize(padded_rows, padded_cols); // Initialize to 0
@@ -111,7 +112,8 @@ void ImageFilter::combineGradients(const FlatImage& gx, const FlatImage& gy, Fla
     });
 }
 
-void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const int kernelX[3][3], const int kernelY[3][3]) const {
+template <typename KType>
+void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const KType kernelX[3][3], const KType kernelY[3][3]) const {
     FlatImage paddedImage;
     auto [padded_rows, padded_cols] = padBoundaries(input, paddedImage);
 
@@ -125,7 +127,8 @@ void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, cons
     removeBoundaries(combinedGradient, output);
 }
 
-void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const int kernel[3][3]) const {
+template <typename KType>
+void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const KType kernel[3][3]) const {
     FlatImage paddedImage;
     auto [padded_rows, padded_cols] = padBoundaries(input, paddedImage);
 
@@ -134,3 +137,11 @@ void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, c
 
     removeBoundaries(gradient, output);
 }
+
+// Explicit template instantiation
+template void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const int kernelX[3][3], const int kernelY[3][3]) const;
+template void ImageFilter::applyXYkernels(const FlatImage& input, FlatImage& output, const float kernelX[3][3], const float kernelY[3][3]) const;
+template void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const int kernel[3][3]) const;
+template void ImageFilter::applySingleKernel(const FlatImage& input, FlatImage& output, const float kernel[3][3]) const;
+template void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const int kernel[3][3]);
+template void ImageFilter::getGradient(const FlatImage& input, FlatImage& output, int padded_rows, int padded_cols, const float kernel[3][3]);

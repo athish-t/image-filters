@@ -1,5 +1,7 @@
 #include "io_utils.hpp"
 #include "filter_pipeline.hpp"
+#include "blur.hpp"
+#include "scharr.hpp"
 #include "sobel.hpp"
 
 int main(int argc, char** argv) {

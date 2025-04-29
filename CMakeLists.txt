@@ -35,14 +35,20 @@ target_link_libraries(main TBB::tbb)
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-# Add test executable
-add_executable(test_image_filter test/test_image_filter.cpp)
-target_sources(test_image_filter PRIVATE src/image_filter.cpp)
+# Exclude main.cpp from test executables
+list(FILTER SRC_FILES EXCLUDE REGEX "src/main.cpp")
 
-# Link test executable with Google Test and project libraries
-target_link_libraries(test_image_filter GTest::GTest GTest::Main)
-target_link_libraries(test_image_filter TBB::tbb)
-target_link_libraries(test_image_filter ${OpenCV_LIBS})
+# Add test executables
+file(GLOB TEST_FILES test/*.cpp)
+foreach(TEST_FILE ${TEST_FILES})
+    get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
+    add_executable(${TEST_NAME} ${TEST_FILE} ${SRC_FILES})
 
-# Add test to CTest
-add_test(NAME ImageFilterTests COMMAND test_image_filter)
+    # Link test executable with Google Test and project libraries
+    target_link_libraries(${TEST_NAME} GTest::GTest GTest::Main)
+    target_link_libraries(${TEST_NAME} TBB::tbb)
+    target_link_libraries(${TEST_NAME} ${OpenCV_LIBS})
+
+    # Add test to CTest
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endforeach()

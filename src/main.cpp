@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    auto pipeline = FilterPipeline().add(std::make_shared<SobelOperator>());
+    auto pipeline = FilterPipeline().addSobelOperator();
 
     cv::Mat benchmarkResult;
     pipeline.applyBenchmark(image, benchmarkResult);

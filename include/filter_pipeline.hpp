@@ -7,6 +7,9 @@ class FilterPipeline
 {
 public:
     FilterPipeline& add(const std::shared_ptr<const ImageFilter>& filter);
+    FilterPipeline& addBlur();
+    FilterPipeline& addScharrOperator();
+    FilterPipeline& addSobelOperator();
 
     void apply(const FlatImage& input, FlatImage& output);
     void applyBenchmark(const cv::Mat& input, cv::Mat& output);

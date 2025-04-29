@@ -1,8 +1,29 @@
 #include "filter_pipeline.hpp"
+#include "blur.hpp"
+#include "scharr.hpp"
+#include "sobel.hpp"
 
 FilterPipeline& FilterPipeline::add(const std::shared_ptr<const ImageFilter>& filter)
 {
     filters.push_back(filter);
+    return *this;
+}
+
+FilterPipeline& FilterPipeline::addBlur()
+{
+    filters.push_back(std::make_shared<Blur>());
+    return *this;
+}
+
+FilterPipeline& FilterPipeline::addScharrOperator()
+{
+    filters.push_back(std::make_shared<ScharrOperator>());
+    return *this;
+}
+
+FilterPipeline& FilterPipeline::addSobelOperator()
+{
+    filters.push_back(std::make_shared<SobelOperator>());
     return *this;
 }
 

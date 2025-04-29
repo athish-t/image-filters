@@ -37,7 +37,7 @@ TEST_F(ImageFilterTest, PadBoundaries) {
 }
 
 TEST_F(ImageFilterTest, RemoveBoundaries) {
-    FlatImage input = createTestImage(5, 5); // Helper function to create a padded test image
+    FlatImage input = createTestImage(5, 5);
     FlatImage output;
 
     removeBoundaries(input, output);
@@ -47,7 +47,7 @@ TEST_F(ImageFilterTest, RemoveBoundaries) {
 
     for (int i = 0; i < output.rows(); ++i) {
         for (int j = 0; j < output.cols(); ++j) {
-            ASSERT_EQ(output(i, j), input(i + 1, j + 1)); // Validate that the inner region matches
+            ASSERT_EQ(output(i, j), input(i + 1, j + 1));
         }
     }
 }
@@ -66,7 +66,6 @@ TEST_F(ImageFilterTest, GetGradient) {
 
     ASSERT_FALSE(output.empty());
 
-    // Use FlatImageFactory to create the expected output image
     std::vector<std::vector<int>> expectedData = {
         {0,  0,  0,  0, 0},
         {0,  9,  9,  9, 0},
@@ -92,7 +91,6 @@ TEST_F(ImageFilterTest, CombineGradients) {
 
     ASSERT_FALSE(combinedGradient.empty());
 
-    // Use FlatImageFactory to create the expected output image
     std::vector<std::vector<int>> expectedData = {
         {3,  3,  3,  3, 3},
         {3,  3,  3,  3, 3},
@@ -110,7 +108,7 @@ TEST_F(ImageFilterTest, CombineGradients) {
 }
 
 TEST_F(ImageFilterTest, ApplySingleKernel) {
-    FlatImage input = createTestImage(5, 5, 1); // Create a test image with all values set to 1
+    FlatImage input = createTestImage(5, 5, 1);
     FlatImage output;
 
     const int kernel[3][3] = {
@@ -123,7 +121,6 @@ TEST_F(ImageFilterTest, ApplySingleKernel) {
 
     ASSERT_FALSE(output.empty());
 
-    // Use FlatImageFactory to create the expected output image
     std::vector<std::vector<int>> expectedData = {
         {9,  9,  9,  9, 9},
         {9,  9,  9,  9, 9},
